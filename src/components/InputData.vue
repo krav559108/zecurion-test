@@ -1,82 +1,226 @@
 <template>
-  <div class="table">
-    <div class="tableColumn">
-      <span>Добавить задачу</span>
-      <input name="text" placeholder="Введите задачу" v-model="task" />
-      <button @click="addTask" value="Добавить"></button>
-      <div>{{ taskData }}</div>
+  <div>
+    <div class="input">
+      <div class="inputColumn">
+        <span>Добавить задачу</span>
+        <input name="text" placeholder="Введите задачу" v-model="task" />
+        <button @click="addTask">Добавить</button>
+        <div v-for="(e, i) in this.data" :key="i">
+          {{ `${e.task.id} ${e.task.name}` }}
+        </div>
+      </div>
+      <div class="inputColumn">
+        <span>Добавить дату</span>
+        <input name="date" placeholder="dd-mm-yyyy" v-model="date" />
+        <button @click="addDate">Добавить</button>
+        <div v-for="(e, i) in this.data[0].dates" :key="i">
+          {{ `${e.id} ${e.date}` }}
+        </div>
+      </div>
+      <div class="inputColumn">
+        <span>Добавить статус</span>
+        <input name="text" placeholder="Введите статус" v-model="status" />
+        <button @click="addStatus">Добавить</button>
+        <div v-for="(el, i) in this.data[0].statuses" :key="i">
+          {{ `${el.id} ${el.status}` }}
+        </div>
+      </div>
+      <div class="inputColumn">
+        <span>Задачи со статусом</span>
+        <div v-for="(el, i) in this.data" :key="i">
+          <div v-for="(event, j) in el.events" :key="j">
+            {{
+              event.id +
+              " " +
+              el.task.name +
+              " " +
+              event.date +
+              " " +
+              event.status
+            }}
+          </div>
+        </div>
+      </div>
     </div>
-    <div class="tableColumn">
-      <span>Добавить дату</span>
-      <input name="date" placeholder="dd-mm-yyyy" v-model="date" />
-      <button @click="addDate" value="Добавить"></button>
-      <div>{{ dateData }}</div>
-    </div>
-    <div class="tableColumn">
-      <span>Добавить статус</span>
-      <input name="text" placeholder="Введите статус"  v-model="status" />
-      <button @click="addStatus" value="Добавить"></button>
-      <div>{{ statusData }}</div>
-    </div>
+    <table>
+      <tbody>
+        <tr>
+          <td>Задачи / Даты</td>
+          <td v-for="(el, i) in this.data[0].dates" :key="i">{{ el.date }}</td>
+        </tr>
+        <tr v-for="(row, rowIndex) in this.data" :key="rowIndex">
+          <td><input type="text" v-model="row.task.name" /></td>
+          <td v-for="(cell, cellIndex) in row.dates" :key="cellIndex">
+            <div v-if="!cell.isActive">
+              <button @click="onCellClick(rowIndex, cellIndex)">+</button>
+            </div>
+            <div v-else>
+              <select
+                v-model="cell.status"
+                @change="onCellChange(rowIndex, cellIndex)"
+              >
+                <option
+                  v-for="(elStatus, i) in this.data[rowIndex].statuses"
+                  :key="i"
+                >
+                  {{ elStatus.status }}
+                </option>
+              </select>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
   </div>
 </template>
 
 <script>
 export default {
+  components: {},
+  props: {
+    data: {
+      type: Array,
+      required: true,
+    },
+  },
   data() {
     return {
       task: "",
       date: "",
       status: "",
-      uuid: "",
+      uuid: 0,
+      localId: 0,
       tasks: [],
       dates: [],
       statuses: [],
+      isActive: false,
     };
   },
   methods: {
-    generateId() {
-      this.uuid = this.uuid + 1;
+    onCellClick(rowIndex, cellIndex) {
+      this.data[rowIndex].dates[cellIndex].isActive = true;
+    },
+    onCellChange(rowIndex, cellIndex) {
+      this.generateId();
+      console.log(this.data[rowIndex].dates[cellIndex].status);
+      console.log(
+        `Button clicked in cell ${rowIndex + 1}-${
+          cellIndex + 1
+        }. Selected option: ${this.data[rowIndex].dates[cellIndex].date}`
+      );
+      const index = this.data[rowIndex].events.findIndex(
+        (item) => item.date === this.data[rowIndex].dates[cellIndex].date
+      );
+      if (index === -1) {
+        let eventData = {
+          id: this.uuid,
+          name: this.data[rowIndex].task.name,
+          date: this.data[rowIndex].dates[cellIndex].date,
+          status: this.data[rowIndex].dates[cellIndex].status,
+        };
+        this.data[rowIndex].events.push(eventData);
+      } else {
+        this.data[rowIndex].events[index].status =
+          this.data[rowIndex].dates[cellIndex].status;
+      }
+    },
+    getDates() {
+      this.data.forEach((e) =>
+        e.dates.forEach((d) =>
+          this.dates.push({
+            id: d.id,
+            date: d.date,
+            isActive: false,
+            status: "",
+          })
+        )
+      );
+    },
+    getStatuses() {
+      this.data.forEach((e) =>
+        e.statuses.forEach((s) => this.statuses.push(s))
+      );
     },
     addTask() {
+      this.generateId();
       if (this.task) {
-        this.tasks.push(this.task);
+        let dataSetTask = {
+          id: this.uuid,
+          task: {
+            id: this.localId,
+            name: this.task,
+          },
+          dates: this.dates,
+          statuses: this.statuses,
+          events: [],
+        };
+        this.data.push(dataSetTask);
         this.task = "";
       }
     },
     addDate() {
+      this.generateId();
       if (this.date) {
-        this.dates.push(this.date);
+        let dataSetDates = {
+          id: this.uuid,
+          date: this.date,
+          isActive: false,
+          status: "",
+        };
+        this.data.forEach((e) => {
+          e.dates.push(dataSetDates);
+        });
         this.date = "";
       }
     },
     addStatus() {
+      this.generateId();
       if (this.status) {
-        this.statuses.push(this.status);
+        let dataSetStatuses = {
+          id: this.uuid,
+          status: this.status,
+        };
+        this.data.forEach((e) => {
+          e.statuses.push(dataSetStatuses);
+        });
         this.status = "";
       }
     },
-  },
-  computed: {
-    taskData() {
-      this.generateId() + " " + this.task;
+    generateId() {
+      this.uuid = Math.floor(Math.random() * 100000);
+      this.localId = Math.floor(Math.random() * 100000);
     },
-    dateData() { this.generateId() + " " + this.date; },
-    statusData() {this.generateId() + " " + this.status;},
+  },
+  mounted() {
+    this.getDates();
+    this.getStatuses();
   },
 };
 </script>
 
 <style>
-.table {
+span {
+  padding-bottom: 15px;
+}
+.input {
   display: flex;
   flex-direction: row;
   justify-content: center;
-  align-items: center;
 }
-.tableColumn {
+.inputColumn {
   display: flex;
   flex-direction: column;
   padding: 1%;
+}
+table {
+  margin: auto;
+}
+table,
+td {
+  padding: 3px;
+  border: 1px solid #333;
+}
+th {
+  padding: 5px;
 }
 </style>

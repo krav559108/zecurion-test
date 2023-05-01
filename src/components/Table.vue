@@ -1,15 +1,5 @@
 <template>
-  <table>
-    <tbody>
-      <tr>
-        <td>Задачи</td>
-        <td v-for="(date, i) in dates" :key="i"> {{date}}</td>
-      </tr>
-      <tr v-for="(task, i) in tasks" :key="i" >
-        <td>{{task}}</td>
-      </tr>
-    </tbody>
-  </table>
+
 </template>
 
 <script>
@@ -27,15 +17,13 @@ export default {
       type: Array,
       required: true,
     },
-    data() {
-      return {
-        // tasks:[],
-        // dates:[],
-        // statuses:[],
-      };
-    },
-    computed: {},
   },
+  data() {
+    return {
+      taskTableData:[{task}],
+    };
+  },
+  computed: {},
 };
 </script>
 
@@ -51,5 +39,4 @@ td {
 th {
   padding: 5px;
 }
-
 </style>
