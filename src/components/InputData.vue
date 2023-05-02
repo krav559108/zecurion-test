@@ -48,7 +48,7 @@
           <td>Задачи / Даты</td>
           <td v-for="(el, i) in this.data[0].dates" :key="i">{{ el.date }}</td>
         </tr>
-        <tr v-for="(row, rowIndex) in this.data" :key="rowIndex">
+        <tr v-for="(row, rowIndex) in this.data" :key="row.id">
           <td><input type="text" v-model="row.task.name" /></td>
           <td v-for="(cell, cellIndex) in row.dates" :key="cell.id">
             <div v-if="!cell.isActive">
