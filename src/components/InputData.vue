@@ -50,7 +50,7 @@
         </tr>
         <tr v-for="(row, rowIndex) in this.data" :key="rowIndex">
           <td><input type="text" v-model="row.task.name" /></td>
-          <td v-for="(cell, cellIndex) in row.dates" :key="cellIndex">
+          <td v-for="(cell, cellIndex) in row.dates" :key="cell.id">
             <div v-if="!cell.isActive">
               <button @click="onCellClick(rowIndex, cellIndex)">+</button>
             </div>
@@ -99,6 +99,12 @@ export default {
   methods: {
     onCellClick(rowIndex, cellIndex) {
       this.data[rowIndex].dates[cellIndex].isActive = true;
+
+      console.log(
+        `Button clicked in cell ${rowIndex + 1}-${
+          cellIndex + 1
+        }. Selected option: ${this.data[rowIndex].dates[cellIndex].date}`
+      );
     },
     onCellChange(rowIndex, cellIndex) {
       this.generateId();
@@ -130,8 +136,6 @@ export default {
           this.dates.push({
             id: d.id,
             date: d.date,
-            isActive: false,
-            status: "",
           })
         )
       );
@@ -143,6 +147,12 @@ export default {
     },
     addTask() {
       this.generateId();
+      let newDates = this.dates.map((e) => {
+        return {
+          id: e.id,
+          date: e.date,
+        };
+      });
       if (this.task) {
         let dataSetTask = {
           id: this.uuid,
@@ -150,7 +160,7 @@ export default {
             id: this.localId,
             name: this.task,
           },
-          dates: this.dates,
+          dates: newDates,
           statuses: this.statuses,
           events: [],
         };
@@ -164,12 +174,11 @@ export default {
         let dataSetDates = {
           id: this.uuid,
           date: this.date,
-          isActive: false,
-          status: "",
         };
         this.data.forEach((e) => {
           e.dates.push(dataSetDates);
         });
+        this.dates.push(dataSetDates);
         this.date = "";
       }
     },
