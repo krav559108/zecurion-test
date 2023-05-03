@@ -5,86 +5,130 @@
         <span>Добавить задачу</span>
         <input name="text" placeholder="Введите задачу" v-model="task" />
         <button @click="addTask">Добавить</button>
-        <div v-for="(e, i) in this.data" :key="i">
-          {{ `${e.task.id} ${e.task.name}` }}
+        <div v-if="this.localData && this.localData.length > 0">
+          <div class="dataColumn" v-for="e in this.localData" :key="e.id">
+            {{ `${e.task.id} ${e.task.name}` }}
+            <button @click="deleteDataItem(e.id)">X</button>
+          </div>
         </div>
+        <div v-else>Создайте задачу!</div>
       </div>
       <div class="inputColumn">
         <span>Добавить дату</span>
         <input name="date" placeholder="dd-mm-yyyy" v-model="date" />
         <button @click="addDate">Добавить</button>
-        <div v-for="(e, i) in this.data[0].dates" :key="i">
-          {{ `${e.id} ${e.date}` }}
+        <div v-if="this.localData && this.localData.length > 0">
+          <div
+            class="dataColumn"
+            v-for="(e, i) in this.localData[0].dates"
+            :key="i"
+          >
+            {{ `${e.id} ${e.date}` }}
+            <button @click="deleteDate(e.id)">X</button>
+          </div>
         </div>
+        <div v-else>Создайте задачу!</div>
       </div>
       <div class="inputColumn">
         <span>Добавить статус</span>
         <input name="text" placeholder="Введите статус" v-model="status" />
         <button @click="addStatus">Добавить</button>
-        <div v-for="(el, i) in this.data[0].statuses" :key="i">
-          {{ `${el.id} ${el.status}` }}
+        <div v-if="this.localData && this.localData.length > 0">
+          <div
+            class="dataColumn"
+            v-for="(el, i) in this.localData[0].statuses"
+            :key="i"
+          >
+            {{ `${el.id} ${el.status}` }}
+            <button @click="deleteStatus(el.id)">X</button>
+          </div>
         </div>
+        <div v-else>Создайте задачу!</div>
       </div>
       <div class="inputColumn">
         <span>Задачи со статусом</span>
-        <div v-for="(el, i) in this.data" :key="i">
-          <div v-for="(event, j) in el.events" :key="j">
-            {{
-              event.id +
-              " " +
-              el.task.name +
-              " " +
-              event.date +
-              " " +
-              event.status
-            }}
+        <div v-if="this.localData && this.localData.length > 0">
+          <div v-for="(el, i) in this.localData" :key="i">
+            <div class="dataColumn" v-for="(event, j) in el.events" :key="j">
+              {{
+                event.id +
+                " " +
+                el.task.name +
+                " " +
+                event.date +
+                " " +
+                event.status
+              }}
+              <button @click="deleteTask(el.id, event.id)">X</button>
+            </div>
           </div>
         </div>
+        <div v-else>Создайте задачу!</div>
       </div>
     </div>
-    <table>
+    <table v-if="this.localData && this.localData.length > 0">
       <tbody>
         <tr>
           <td>Задачи / Даты</td>
-          <td v-for="(el, i) in this.data[0].dates" :key="i">{{ el.date }}</td>
-        </tr>
-        <tr v-for="(row, rowIndex) in this.data" :key="row.id">
-          <td><input type="text" v-model="row.task.name" /></td>
-          <td v-for="(cell, cellIndex) in row.dates" :key="cell.id">
-            <div v-if="!cell.isActive">
-              <button @click="onCellClick(rowIndex, cellIndex)">+</button>
-            </div>
-            <div v-else>
-              <select
-                v-model="cell.status"
-                @change="onCellChange(rowIndex, cellIndex)"
-              >
-                <option
-                  v-for="(elStatus, i) in this.data[rowIndex].statuses"
-                  :key="i"
-                >
-                  {{ elStatus.status }}
-                </option>
-              </select>
-            </div>
+          <td v-for="(el, i) in this.localData[0].dates" :key="i">
+            {{ el.date }}
           </td>
         </tr>
+
+        <Table
+          v-for="item in this.localData"
+          :key="item.id"
+          :data="item"
+        ></Table>
       </tbody>
     </table>
+    <div v-else>Создайте задачу!</div>
   </div>
 </template>
 
 <script>
+import Table from "./Table.vue";
 export default {
-  components: {},
-  props: {
-    data: {
-      type: Array,
-      required: true,
-    },
-  },
+  components: { Table },
+  props: {},
   data() {
     return {
+      localData: [
+        {
+          id: 1,
+          task: {
+            id: 1,
+            name: "Задача",
+          },
+          dates: [
+            { id: 4, date: "13.03", isActive: false, status: "" },
+            { id: 5, date: "20.03", isActive: false, status: "" },
+            { id: 6, date: "27.03", isActive: false, status: "" },
+            { id: 7, date: "03.04", isActive: false, status: "" },
+            { id: 8, date: "10.04", isActive: false, status: "" },
+          ],
+          statuses: [
+            { id: 9, status: "Готово" },
+            { id: 10, status: "Не готово" },
+            { id: 11, status: "В работе" },
+            { id: 12, status: "На проверке" },
+          ],
+          events: [
+            {
+              id: 1,
+              name: "Задача 1",
+              date: "27.03",
+              status: "Готово",
+            },
+            {
+              id: 1,
+              name: "Задача 1",
+              date: "03.04",
+              status: "В работе",
+            },
+          ],
+        },
+      ],
       task: "",
       date: "",
       status: "",
@@ -97,41 +141,37 @@ export default {
     };
   },
   methods: {
-    onCellClick(rowIndex, cellIndex) {
-      this.data[rowIndex].dates[cellIndex].isActive = true;
-
-      console.log(
-        `Button clicked in cell ${rowIndex + 1}-${
-          cellIndex + 1
-        }. Selected option: ${this.data[rowIndex].dates[cellIndex].date}`
-      );
-    },
-    onCellChange(rowIndex, cellIndex) {
-      this.generateId();
-      console.log(this.data[rowIndex].dates[cellIndex].status);
-      console.log(
-        `Button clicked in cell ${rowIndex + 1}-${
-          cellIndex + 1
-        }. Selected option: ${this.data[rowIndex].dates[cellIndex].date}`
-      );
-      const index = this.data[rowIndex].events.findIndex(
-        (item) => item.date === this.data[rowIndex].dates[cellIndex].date
-      );
-      if (index === -1) {
-        let eventData = {
-          id: this.uuid,
-          name: this.data[rowIndex].task.name,
-          date: this.data[rowIndex].dates[cellIndex].date,
-          status: this.data[rowIndex].dates[cellIndex].status,
-        };
-        this.data[rowIndex].events.push(eventData);
+    deleteDataItem(id) {
+      const index = this.localData.findIndex((e) => e.id === id);
+      if (index === 0) {
+        this.localData = [];
       } else {
-        this.data[rowIndex].events[index].status =
-          this.data[rowIndex].dates[cellIndex].status;
+        this.localData = this.localData.splice(index, 1);
       }
     },
+    deleteDate(id) {
+      const index = this.localData[0].dates.findIndex((e) => e.id === id);
+      this.localData.forEach((e) => e.dates.splice(index, 1));
+    },
+    deleteStatus(id) {
+      const index = this.localData[0].statuses.findIndex((e) => e.id === id);
+      this.localData.forEach((e) => e.statuses.splice(index, 1));
+    },
+    deleteTask(itemId, id) {
+      const index = this.localData.findIndex((e) => e.id === itemId);
+      const eventIndex = this.localData[index].events.findIndex(
+        (e) => e.id === id
+      );
+      const date = this.localData[index].events[eventIndex].date;
+      const dateIndex = this.localData[index].dates.findIndex(
+        (e) => e.date === date
+      );
+      this.localData[index].dates[dateIndex].isActive = false;
+      this.localData[index].dates[dateIndex].status = "";
+      this.localData[index].events.splice(eventIndex, 1);
+    },
     getDates() {
-      this.data.forEach((e) =>
+      this.localData.forEach((e) =>
         e.dates.forEach((d) =>
           this.dates.push({
             id: d.id,
@@ -141,8 +181,13 @@ export default {
       );
     },
     getStatuses() {
-      this.data.forEach((e) =>
-        e.statuses.forEach((s) => this.statuses.push(s))
+      this.localData.forEach((e) =>
+        e.statuses.forEach((s) =>
+          this.statuses.push({
+            id: s.id,
+            status: s.status,
+          })
+        )
       );
     },
     addTask() {
@@ -164,7 +209,7 @@ export default {
           statuses: this.statuses,
           events: [],
         };
-        this.data.push(dataSetTask);
+        this.localData.push(dataSetTask);
         this.task = "";
       }
     },
@@ -175,7 +220,7 @@ export default {
           id: this.uuid,
           date: this.date,
         };
-        this.data.forEach((e) => {
+        this.localData.forEach((e) => {
           e.dates.push(dataSetDates);
         });
         this.dates.push(dataSetDates);
@@ -189,7 +234,7 @@ export default {
           id: this.uuid,
           status: this.status,
         };
-        this.data.forEach((e) => {
+        this.localData.forEach((e) => {
           e.statuses.push(dataSetStatuses);
         });
         this.status = "";
@@ -204,10 +249,16 @@ export default {
     this.getDates();
     this.getStatuses();
   },
+  watch: {},
 };
 </script>
 
 <style>
+.dataColumn {
+  display: flex;
+  justify-content: space-between;
+  padding-top: 3%;
+}
 span {
   padding-bottom: 15px;
 }
